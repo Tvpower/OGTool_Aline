@@ -1,18 +1,19 @@
 import json
+import os
+import glob
 import scrapers
 import pdf_processor
 
-# Define the name for the output file and the path for the PDF.
-# The user should place the PDF with this name in the project root.
+# Define the name for the output file and the path for the PDF directory.
 OUTPUT_FILENAME = "output.json"
-PDF_BOOK_PATH = "Aline_Book.pdf" 
+PDF_BOOK_DIRECTORY = "Books_PDF"
 
 def main():
     """
     Main function to orchestrate the scraping process.
     
-    It calls all the crawler functions, processes the PDF,
-    aggregates the results, and saves them to a JSON file.
+    It calls all the crawler functions, processes all PDFs in the
+    specified directory, aggregates the results, and saves them to a JSON file.
     """
     all_items = []
 
@@ -25,7 +26,14 @@ def main():
 
     # --- Process Local Files ---
     # The PDF processor handles local document extraction.
-    all_items.extend(pdf_processor.process_book_chapters(PDF_BOOK_PATH))
+    # We find all PDF files in the specified directory and process each one.
+    pdf_files = glob.glob(os.path.join(PDF_BOOK_DIRECTORY, '*.pdf'))
+    if not pdf_files:
+        print(f"\nNo PDFs found in the '{PDF_BOOK_DIRECTORY}' directory. Skipping PDF processing.")
+    else:
+        print(f"\nFound {len(pdf_files)} PDF(s) to process.")
+        for pdf_path in pdf_files:
+            all_items.extend(pdf_processor.process_book_chapters(pdf_path))
 
     # --- Bonus: Demonstrate Reusability ---
     # This call shows that our generic scraper setup can handle other blogs.
