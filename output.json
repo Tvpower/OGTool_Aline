@@ -1,0 +1,205 @@
+{
+  "team_id": "aline123",
+  "items": [
+    {
+      "title": "Stop trying to make recruiters think, or, why your resume is bad and how to fix it",
+      "content": "Data Structures and Algorithms",
+      "content_type": "blog",
+      "source_url": "https://interviewing.io/blog/stop-trying-to-make-recruiters-think-or-why-your-resume-is-bad-and-how-to-fix-it",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "It's OK to postpone your interviews if you're not ready",
+      "content": "Data Structures and Algorithms",
+      "content_type": "blog",
+      "source_url": "https://interviewing.io/blog/its-ok-to-postpone-your-interviews-if-youre-not-ready",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "We co-wrote the official sequel to Cracking the Coding Interview!",
+      "content": "Data Structures and Algorithms",
+      "content_type": "blog",
+      "source_url": "https://interviewing.io/blog/we-co-wrote-the-official-sequel-to-cracking-the-coding-interview-introducing-beyond-ctci",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "Read nine chapters of Beyond Cracking the Coding Interview for free",
+      "content": "Data Structures and Algorithms",
+      "content_type": "blog",
+      "source_url": "https://interviewing.io/blog/nine-free-chapters-of-beyond-cracking-the-coding-interview",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "Why resume writing is snake oil",
+      "content": "Data Structures and Algorithms",
+      "content_type": "blog",
+      "source_url": "https://interviewing.io/blog/why-resume-writing-is-snake-oil",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "How well do LeetCode ratings predict interview performance? Here's the data.",
+      "content": "Data Structures and Algorithms",
+      "content_type": "blog",
+      "source_url": "https://interviewing.io/blog/how-well-do-leetcode-ratings-predict-interview-performance",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "How to get in the door at top companies: cold outreach to hiring managers. Part 2 of 2.",
+      "content": "Data Structures and Algorithms",
+      "content_type": "blog",
+      "source_url": "https://interviewing.io/blog/how-to-get-in-the-door-at-top-companies-cold-out-reach-to-hiring-managers-part-2",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "How to get in the door at top companies: a data-driven, practical guide for software engineers. Part 1.",
+      "content": "System Design",
+      "content_type": "blog",
+      "source_url": "https://interviewing.io/blog/how-to-get-in-the-door-at-top-companies-part-1",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "I love meritocracy, but all the recent anti-DEI rhetoric is bad",
+      "content": "Data Structures and Algorithms",
+      "content_type": "blog",
+      "source_url": "https://interviewing.io/blog/i-love-meritocracy-but-all-the-recent-anti-dei-rhetoric-is-bad",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "Why engineers don’t like take-homes – and how companies can fix them",
+      "content": "Data Structures and Algorithms",
+      "content_type": "blog",
+      "source_url": "https://interviewing.io/blog/why-engineers-dont-like-take-homes-and-how-companies-can-fix-them",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer’s Guide to Apple's Interview Process And Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/apple",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer’s Guide to Amazon's Interview Process and Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/amazon",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "Ultimate Guide to FAANG Interviews for Senior Engineers",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer's Guide to the System Design Interview",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/system-design-interview",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer’s Guide to Meta's Interview Process and Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/meta-facebook",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "Senior Engineer's Guide To Microsoft's Interview Process and Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/microsoft",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer’s Guide to Amazon's Interview Process and Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/amazon#solutions-to-common-amazon-questions",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer’s Guide to Google’s Interview Process and Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/google",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer's Guide to the Amazon Leadership Principles Interview",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/amazon-leadership-principles",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer’s Guide to Apple's Interview Process And Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/apple#solutions-to-common-apple-questions",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer’s Guide to Netflix's Interview Process and Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/netflix",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "Senior Engineer's Guide To Microsoft's Interview Process and Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/microsoft#solutions-to-common-microsoft-questions",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer’s Guide to Google’s Interview Process and Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/google#solutions-to-common-google-questions",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer’s Guide to Netflix's Interview Process and Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/netflix#solutions-to-common-netflix-questions",
+      "author": "",
+      "user_id": ""
+    },
+    {
+      "title": "A Senior Engineer’s Guide to Meta's Interview Process and Questions",
+      "content": "!",
+      "content_type": "guide",
+      "source_url": "https://interviewing.io/guides/hiring-process/meta-facebook#solutions-to-common-facebook-questions",
+      "author": "",
+      "user_id": ""
+    }
+  ]
+}
