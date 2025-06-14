@@ -1,4 +1,16 @@
-requests
-beautifulsoup4
-PyMuPDF
-markdownify
+# Core scraping dependencies
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+markdownify>=0.11.0
+
+# PDF processing
+PyMuPDF>=1.23.0
+
+# Configuration and CLI
+pyyaml>=6.0
+click>=8.1.0
+colorama>=0.4.6
+
+# Optional: For enhanced scraping (if needed)
+# selenium>=4.0.0  # Uncomment if you need JavaScript rendering
+# playwright>=1.0.0  # Alternative to selenium

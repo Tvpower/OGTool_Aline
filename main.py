@@ -1,60 +1,52 @@
-import json
-import os
-import glob
-import scrapers
-import pdf_processor
+"""
+Legacy main.py - DEPRECATED
+For the new configuration-driven approach, use: python cli.py scrape
 
-# Define the name for the output file and the path for the PDF directory.
-OUTPUT_FILENAME = "output.json"
-PDF_BOOK_DIRECTORY = "Books_PDF"
+This file is kept only for backward compatibility.
+"""
+
+import sys
+import os
 
 def main():
     """
-    Main function to orchestrate the scraping process.
+    Legacy main function - redirects to new CLI approach.
     
-    It calls all the crawler functions, processes all PDFs in the
-    specified directory, aggregates the results, and saves them to a JSON file.
+    🚫 DEPRECATED: This approach is no longer maintained.
+    ✅ Use the new CLI instead: python cli.py scrape
     """
-    all_items = []
 
-    # --- Run Scrapers ---
-    # Each crawler function is responsible for a specific source.
-    # They run scraping tasks in parallel internally for efficiency.
-    all_items.extend(scrapers.crawl_interviewing_io_blog())
-    all_items.extend(scrapers.crawl_interviewing_io_guides())
-    all_items.extend(scrapers.crawl_nil_mamano())
-
-    # --- Process Local Files ---
-    # The PDF processor handles local document extraction.
-    # We find all PDF files in the specified directory and process each one.
-    pdf_files = glob.glob(os.path.join(PDF_BOOK_DIRECTORY, '*.pdf'))
-    if not pdf_files:
-        print(f"\nNo PDFs found in the '{PDF_BOOK_DIRECTORY}' directory. Skipping PDF processing.")
-    else:
-        print(f"\nFound {len(pdf_files)} PDF(s) to process.")
-        for pdf_path in pdf_files:
-            all_items.extend(pdf_processor.process_book_chapters(pdf_path))
-
-    # --- Bonus: Demonstrate Reusability ---
-    # This call shows that our generic scraper setup can handle other blogs.
-    all_items.extend(scrapers.crawl_quill_co_blog())
-
-    # --- Assemble Final Output ---
-    # The final JSON structure is created as per the assignment's requirements.
-    final_output = {
-        "team_id": "aline123",
-        "items": all_items
-    }
-
-    # --- Save to File ---
-    # The results are written to a JSON file.
+    print("✅ Please use the new CLI approach instead:")
+    print()
+    print("  # Basic scraping:")
+    print("  python cli.py scrape")
+    print()
+    print("  # Validate configuration:")
+    print("  python cli.py validate")
+    print()
+    print("  # List all targets:")
+    print("  python cli.py list-targets")
+    print()
+    print("  # Process a single PDF:")
+    print("  python cli.py process-pdf 'path/to/file.pdf'")
+    print()
+    print("  # Scrape a single URL:")
+    print("  python cli.py scrape-url 'https://example.com/article'")
+    print()
+    print("📖 The new approach uses config.yml for easy configuration.")
+    print("🚀 Much more flexible and feature-rich!")
+    print()
+    
+    # Ask if they want to run the new CLI
     try:
-        with open(OUTPUT_FILENAME, 'w', encoding='utf-8') as f:
-            json.dump(final_output, f, indent=2, ensure_ascii=False)
-        print(f"\n✅ Success! All content has been scraped and saved to '{OUTPUT_FILENAME}'")
-        print(f"Total items scraped: {len(all_items)}")
-    except IOError as e:
-        print(f"\n❌ Error saving output to file: {e}")
+        choice = input("Would you like to run 'python cli.py scrape' now? (y/N): ").strip().lower()
+        if choice in ['y', 'yes']:
+            import subprocess
+            sys.exit(subprocess.call([sys.executable, 'cli.py', 'scrape']))
+    except KeyboardInterrupt:
+        print("\n👋 Goodbye!")
+    
+    sys.exit(1)
 
 if __name__ == "__main__":
     main() 

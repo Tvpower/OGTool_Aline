@@ -1,3 +1,16 @@
+"""
+Legacy specialized scrapers for interviewing.io sites.
+
+⚠️  MOSTLY DEPRECATED: This file contains legacy scraper functions.
+✅  RECOMMENDED: Use the new configuration-driven approach in cli.py
+
+Currently used by:
+- LegacyScraper class in generic_scraper.py (for interviewing.io sites only)
+- Provides specialized scraping logic for complex sites
+
+For new sites, add them to config.yml instead of adding functions here.
+"""
+
 import concurrent.futures
 import re
 import time
@@ -188,6 +201,37 @@ def scrape_interviewing_io_guide(url: str):
         title = title_element.get_text(strip=True) if title_element else "No Title Found"
         print(f"    - Title found: '{title}'")
 
+        # Extract author from Credits section
+        author_name = ""
+        # Look for Credits section
+        credits_section = soup.find('h4', string='Credits')
+        if credits_section:
+            # Find the parent container that has the credits information
+            credits_container = credits_section.find_parent()
+            if credits_container:
+                # Look for "Creator and author" section
+                creator_section = credits_container.find('h6', string='Creator and author')
+                if creator_section:
+                    # Find the next div that contains the author name
+                    author_div = creator_section.find_next_sibling('div')
+                    if author_div:
+                        author_text_div = author_div.find('div')
+                        if author_text_div:
+                            author_name = author_text_div.get_text(strip=True)
+        
+        # If no author found in Credits, try to find it in other common locations
+        if not author_name:
+            # Try meta tag
+            author_meta = soup.select_one('meta[name="author"]')
+            if author_meta and 'content' in author_meta.attrs:
+                author_name = author_meta['content']
+        
+        # Default fallback
+        if not author_name:
+            author_name = "interviewing.io team"
+            
+        print(f"    - Author found: '{author_name}'")
+
         # Extract main content from the guide content container
         content_paragraphs = []
         
@@ -254,7 +298,7 @@ def scrape_interviewing_io_guide(url: str):
             "content": content_md,
             "content_type": "guide",
             "source_url": url,
-            "author": "interviewing.io team",
+            "author": author_name,
             "user_id": ""
         }
 
@@ -266,9 +310,116 @@ def scrape_interviewing_io_guide(url: str):
         return None
 
 
+def run_interviewing_io_scraper_in_parallel(urls: list):
+    """
+    Uses a thread pool to run the specialized interviewing.io scraper on a list of URLs concurrently.
+    """
+    items = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:  # Reduced workers to be more polite
+        future_to_url = {executor.submit(scrape_interviewing_io_blog_post, url): url for url in urls}
+        for future in concurrent.futures.as_completed(future_to_url):
+            try:
+                data = future.result()
+                if data:
+                    items.append(data)
+            except Exception as exc:
+                url = future_to_url[future]
+                print(f"  - ERROR: An exception occurred while scraping {url}: {exc}")
+            time.sleep(0.2)  # More conservative rate limiting
+    return items
+
+
+def run_interviewing_io_guide_scraper_in_parallel(urls: list):
+    """
+    Uses a thread pool to run the specialized interviewing.io guide scraper on a list of URLs concurrently.
+    """
+    items = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:  # Reduced workers to be more polite
+        future_to_url = {executor.submit(scrape_interviewing_io_guide, url): url for url in urls}
+        for future in concurrent.futures.as_completed(future_to_url):
+            try:
+                data = future.result()
+                if data:
+                    items.append(data)
+            except Exception as exc:
+                url = future_to_url[future]
+                print(f"  - ERROR: An exception occurred while scraping guide {url}: {exc}")
+            time.sleep(0.2)  # More conservative rate limiting
+    return items
+
+
+# === MAIN LEGACY FUNCTIONS (used by LegacyScraper) ===
+
+def crawl_interviewing_io_blog():
+    """
+    Finds all article URLs on the interviewing.io blog and scrapes them.
+    
+    ✅ ACTIVE: Used by LegacyScraper when use_specialized_scraper is enabled.
+    """
+    start_url = "https://interviewing.io/blog"
+    print(f"\nStarting crawl of interviewing.io Blog: {start_url}")
+    try:
+        response = requests.get(start_url, headers=HEADERS, timeout=15)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Extract blog post links from the h1 > a elements on the listing page
+        post_links = [urljoin(start_url, a['href']) for a in soup.select('h1 > a') if a.get('href') and a.get('href').startswith('/blog/')]
+        print(f"Found {len(post_links)} blog posts on interviewing.io.")
+
+        # Use the specialized scraper for interviewing.io blog posts
+        return run_interviewing_io_scraper_in_parallel(post_links)
+
+    except requests.exceptions.RequestException as e:
+        print(f"ERROR: Could not fetch the main blog page {start_url}. Reason: {e}")
+        return []
+
+
+def crawl_interviewing_io_guides():
+    """
+    Finds all company and interview guides on interviewing.io and scrapes them.
+    
+    ✅ ACTIVE: Used by LegacyScraper when use_specialized_scraper is enabled.
+    """
+    base_url = "https://interviewing.io"
+    # The assignment points to two URLs which are fragments on a single page.
+    # /topics and /learn both contain relevant guides.
+    guide_pages = [f"{base_url}/topics", f"{base_url}/learn"]
+    all_guide_links = set() # Use a set to avoid duplicates
+
+    print("\nStarting crawl of interviewing.io Guides")
+    for page_url in guide_pages:
+        print(f"Finding guides on: {page_url}")
+        try:
+            response = requests.get(page_url, headers=HEADERS, timeout=15)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # SELECTOR FIX: The original selector was for JS-rendered content.
+            # This new selector finds all links to guides in the raw HTML.
+            links = soup.select('a[href*="/guides/"]')
+            for a in links:
+                if a.get('href'):
+                    all_guide_links.add(urljoin(base_url, a['href']))
+
+        except requests.exceptions.RequestException as e:
+            print(f"ERROR: Could not fetch guide page {page_url}. Reason: {e}")
+            continue
+    
+    print(f"Found {len(all_guide_links)} unique guides on interviewing.io.")
+    
+    # Use the specialized guide scraper instead of the generic scraper
+    return run_interviewing_io_guide_scraper_in_parallel(list(all_guide_links))
+
+
+# === DEPRECATED FUNCTIONS (Remove these when no longer needed) ===
+
 def scrape_page(url: str, title_selector: str, content_selector: str, content_type: str = "blog"):
     """
-    Generic scraper for other sites (kept for compatibility).
+    Generic scraper for other sites.
+    
+    🚫 DEPRECATED: Use the generic_scraper.py GenericScraper class instead.
+    This is kept only for backward compatibility.
     """
     print(f"  - Scraping: {url}")
     try:
@@ -320,47 +471,9 @@ def scrape_page(url: str, title_selector: str, content_selector: str, content_ty
         return None
 
 
-def run_interviewing_io_scraper_in_parallel(urls: list):
-    """
-    Uses a thread pool to run the specialized interviewing.io scraper on a list of URLs concurrently.
-    """
-    items = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:  # Reduced workers to be more polite
-        future_to_url = {executor.submit(scrape_interviewing_io_blog_post, url): url for url in urls}
-        for future in concurrent.futures.as_completed(future_to_url):
-            try:
-                data = future.result()
-                if data:
-                    items.append(data)
-            except Exception as exc:
-                url = future_to_url[future]
-                print(f"  - ERROR: An exception occurred while scraping {url}: {exc}")
-            time.sleep(0.2)  # More conservative rate limiting
-    return items
-
-
-def run_interviewing_io_guide_scraper_in_parallel(urls: list):
-    """
-    Uses a thread pool to run the specialized interviewing.io guide scraper on a list of URLs concurrently.
-    """
-    items = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:  # Reduced workers to be more polite
-        future_to_url = {executor.submit(scrape_interviewing_io_guide, url): url for url in urls}
-        for future in concurrent.futures.as_completed(future_to_url):
-            try:
-                data = future.result()
-                if data:
-                    items.append(data)
-            except Exception as exc:
-                url = future_to_url[future]
-                print(f"  - ERROR: An exception occurred while scraping guide {url}: {exc}")
-            time.sleep(0.2)  # More conservative rate limiting
-    return items
-
-
 def run_scraper_in_parallel(urls: list, title_selector: str, content_selector: str, content_type: str):
     """
-    Uses a thread pool to run the scrape_page function on a list of URLs concurrently.
+    🚫 DEPRECATED: Use GenericScraper._scrape_articles_parallel instead.
     """
     items = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
@@ -374,92 +487,4 @@ def run_scraper_in_parallel(urls: list, title_selector: str, content_selector: s
                 url = future_to_url[future]
                 print(f"  - ERROR: An exception occurred while scraping {url}: {exc}")
             time.sleep(0.1)
-    return items
-
-
-def crawl_interviewing_io_blog():
-    """
-    Finds all article URLs on the interviewing.io blog and scrapes them.
-    """
-    start_url = "https://interviewing.io/blog"
-    print(f"\nStarting crawl of interviewing.io Blog: {start_url}")
-    try:
-        response = requests.get(start_url, headers=HEADERS, timeout=15)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        # Extract blog post links from the h1 > a elements on the listing page
-        post_links = [urljoin(start_url, a['href']) for a in soup.select('h1 > a') if a.get('href') and a.get('href').startswith('/blog/')]
-        print(f"Found {len(post_links)} blog posts on interviewing.io.")
-
-        # Use the specialized scraper for interviewing.io blog posts
-        return run_interviewing_io_scraper_in_parallel(post_links)
-
-    except requests.exceptions.RequestException as e:
-        print(f"ERROR: Could not fetch the main blog page {start_url}. Reason: {e}")
-        return []
-
-
-def crawl_interviewing_io_guides():
-    """
-    Finds all company and interview guides on interviewing.io and scrapes them.
-    """
-    base_url = "https://interviewing.io"
-    # The assignment points to two URLs which are fragments on a single page.
-    # /topics and /learn both contain relevant guides.
-    guide_pages = [f"{base_url}/topics", f"{base_url}/learn"]
-    all_guide_links = set() # Use a set to avoid duplicates
-
-    print("\nStarting crawl of interviewing.io Guides")
-    for page_url in guide_pages:
-        print(f"Finding guides on: {page_url}")
-        try:
-            response = requests.get(page_url, headers=HEADERS, timeout=15)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.content, 'html.parser')
-            
-            # SELECTOR FIX: The original selector was for JS-rendered content.
-            # This new selector finds all links to guides in the raw HTML.
-            links = soup.select('a[href*="/guides/"]')
-            for a in links:
-                if a.get('href'):
-                    all_guide_links.add(urljoin(base_url, a['href']))
-
-        except requests.exceptions.RequestException as e:
-            print(f"ERROR: Could not fetch guide page {page_url}. Reason: {e}")
-            continue
-    
-    print(f"Found {len(all_guide_links)} unique guides on interviewing.io.")
-    
-    # Use the specialized guide scraper instead of the generic scraper
-    return run_interviewing_io_guide_scraper_in_parallel(list(all_guide_links))
-
-
-def crawl_nil_mamano():
-    """
-    Finds all of Nil Mamano's DS&A blog posts and scrapes them.
-    """
-    start_url = "https://nilmamano.com/blog/category/dsa/"
-    print(f"\nStarting crawl of Nil Mamano's Blog: {start_url}")
-
-    # NOTE: This site has proven difficult to scrape with basic requests,
-    # likely due to client-side rendering or advanced bot detection.
-    # Rather than add heavy dependencies like Selenium, we will acknowledge
-    # this limitation and skip this source.
-    print(f"  - INFO: Skipping {start_url} as it appears to be blocking scrapers.")
-    return []
-
-def crawl_quill_co_blog():
-    """
-    Demonstrates reusability by scraping a different blog (Quill.co).
-    This is part of the "Bonus Points" / robustness check.
-    """
-    start_url = "https://quill.co/blog"
-    print(f"\nStarting crawl of Quill.co Blog (Bonus): {start_url}")
-
-    # NOTE: This site appears to be fully client-side rendered with JavaScript.
-    # The initial HTML from `requests` does not contain the blog post links.
-    # A more advanced scraper using a tool like Selenium or Playwright would be needed.
-    # For this project, we will return an empty list as required by the architecture.
-    print(f"  - INFO: Skipping {start_url} as it requires JavaScript to render content.")
-    return [] 
+    return items 

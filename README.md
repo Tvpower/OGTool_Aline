@@ -1,164 +1,202 @@
-# Web Scraper
+# OGTool_Aline - Web Scraper Tool
 
-A modular, concurrent web scraping solution designed for rapid development and maximum reusability. Built to extract content from multiple sources and compile them into a structured knowledge base within 24 hours.
+A powerful, configuration-driven web scraping tool that can extract content from multiple websites and process PDF documents.
 
-## Strategy
-
-This project prioritizes development speed and robustness over raw execution performance. Since network latency is typically the primary bottleneck in web scraping, we achieve high performance through concurrent requests rather than low-level optimizations.
-
-The solution uses Python's world-class ecosystem for web scraping and data processing, enabling rapid development while maintaining professional-grade reliability.
-
-## Features
-
-- **Concurrent Processing**: Parallel HTTP requests to minimize total execution time
-- **Modular Architecture**: Easy to extend with new sources (Substack, blogs, etc.)
-- **Multi-Format Support**: Handles both web content and PDF processing
-- **Professional Web Etiquette**: Includes rate limiting and proper User-Agent headers
-- **Clean Output**: Converts HTML to structured Markdown format
-- **Chapter-Aware PDF Processing**: Intelligently extracts and structures book content
-
-## Technology Stack
-
-- **Python 3.9+**: Core language
-- **requests**: Fast HTTP requests
-- **BeautifulSoup4**: Robust HTML parsing
-- **PyMuPDF (fitz)**: High-performance PDF text extraction
-- **markdownify**: HTML to Markdown conversion
-- **concurrent.futures**: Built-in parallelization
-
-## Installation
+## 🚀 Quick Start
 
 ```bash
-pip install requests beautifulsoup4 PyMuPDF markdownify
-```
-
-Or use the provided requirements file:
-
-```bash
+# Install dependencies
 pip install -r requirements.txt
+
+# Run the scraper with default configuration
+python cli.py scrape
+
+# Validate your configuration
+python cli.py validate
+
+# See all available commands
+python cli.py --help
 ```
 
-## Project Structure
+## ✨ Features
+
+- **Configuration-driven**: Easy-to-modify YAML configuration
+- **Multiple scrapers**: Built-in support for blogs, guides, and newsletters
+- **PDF processing**: Extract and process content from PDF documents
+- **ZenRows integration**: Premium API fallback for difficult sites
+- **Parallel processing**: Efficient concurrent scraping
+- **Flexible selectors**: CSS selector-based content extraction
+- **Rich CLI**: Colorful, informative command-line interface
+
+## 📁 Project Structure
 
 ```
-├── main.py              # Main controller script
-├── scrapers.py          # Core scraping logic
-├── pdf_processor.py     # PDF processing specialist
-├── requirements.txt     # Dependencies
-└── output.json         # Generated knowledge base
+├── cli.py                 # Main CLI interface (USE THIS)
+├── config.yml            # Configuration file
+├── config_loader.py      # Configuration parser
+├── generic_scraper.py    # Main scraping engine
+├── zenrows_scraper.py    # Premium API fallback
+├── pdf_processor.py      # PDF content extraction
+├── main.py              # Legacy script (DEPRECATED)
+├── scrapers.py          # Legacy scrapers (partial use)
+├── test_pdf_processor.py # PDF testing utilities
+├── Books_PDF/           # PDF files directory
+└── requirements.txt     # Python dependencies
 ```
 
-### Module Responsibilities
+## 🎯 Current Active Targets
 
-- **main.py**: Orchestrates the entire process, dispatches tasks, aggregates results
-- **scrapers.py**: Contains all web scraping functions
-  - `scrape_blog_post(url)`: Generic article scraping
-  - `crawl_interviewing_io_blog()`: Blog post discovery and scraping
-  - `crawl_interviewing_io_guides()`: Company/interview guide extraction
-  - `crawl_nil_mamano()`: DSA posts scraping
-- **pdf_processor.py**: Specialized PDF handling
-  - `process_book_chapters(pdf_path)`: Chapter-aware content extraction
+- ✅ **Interviewing.io Blog** - Tech interview articles
+- ✅ **Interviewing.io Guides** - Interview preparation guides  
+- ✅ **Shreycation Substack** - Newsletter content
+- ✅ **PDF Processing** - Extract content from Books_PDF directory
+- ❌ **Nil Mamano DSA** - Disabled (site blocks scrapers)
+- ❌ **Quill.co Blog** - Disabled (structure issues)
 
-## Usage
+## 🛠️ Usage Examples
 
-1. **Run the complete scraper**:
-   ```bash
-   python main.py
-   ```
+### Basic Scraping
+```bash
+# Scrape all enabled targets
+python cli.py scrape
 
-2. **Scrape a single article**:
-   ```python
-   from scrapers import scrape_blog_post
-   article_data = scrape_blog_post("https://example.com/article")
-   ```
+# Scrape only a specific target
+python cli.py scrape --target "Interviewing.io Blog"
 
-3. **Process a PDF**:
-   ```python
-   from pdf_processor import process_book_chapters
-   chapters = process_book_chapters("book.pdf")
-   ```
+# Skip PDF processing
+python cli.py scrape --skip-pdf
 
-## Implementation Guide
+# Dry run (show what would be scraped)
+python cli.py scrape --dry-run
+```
 
-### Phase 1: Single Article Scraping
-- Create generic `scrape_blog_post()` function
-- Handle title extraction and content parsing
-- Convert HTML to clean Markdown format
+### Single URL Scraping
+```bash
+# Scrape a single URL
+python cli.py scrape-url "https://example.com/article"
 
-### Phase 2: Website Crawling
-- Implement site-specific crawler functions
-- Use concurrent processing for parallel requests
-- Aggregate results from multiple sources
+# With custom selectors
+python cli.py scrape-url "https://site.com/post" \
+  --title-selector "h1.title" \
+  --content-selector ".post-content"
 
-### Phase 3: PDF Processing
-- Extract text with chapter-aware parsing
-- Identify chapter breaks using font size heuristics
-- Structure content by chapters for better organization
+# Force ZenRows for difficult sites
+python cli.py scrape-url "https://difficult-site.com" --force-zenrows
+```
 
-### Phase 4: Final Assembly
-- Combine all scraped content
-- Generate structured JSON output
-- Apply final content cleaning and formatting
+### PDF Processing
+```bash
+# Process a single PDF
+python cli.py process-pdf "path/to/document.pdf"
 
-## Output Format
+# Test PDF processor with existing files
+python test_pdf_processor.py
+```
 
-The scraper generates a structured JSON file:
+### Configuration Management
+```bash
+# Validate configuration
+python cli.py validate
 
+# List all targets
+python cli.py list-targets
+
+# Check ZenRows API status
+python cli.py zenrows-status
+```
+
+## ⚙️ Configuration
+
+Edit `config.yml` to:
+- Add new scraping targets
+- Modify CSS selectors
+- Adjust rate limiting
+- Configure ZenRows API
+- Set output preferences
+
+### Adding a New Target
+
+```yaml
+targets:
+  - name: "My Blog"
+    url: "https://myblog.com"
+    type: "blog"
+    enabled: true
+    article_link_selector: "a.post-link"
+    title_selector: "h1"
+    content_selectors:
+      - "article .content"
+      - "div.post-body"
+    author_selector: ".author-name"
+    content_min_length: 100
+```
+
+## 🔧 Advanced Features
+
+### ZenRows Fallback
+- Automatically retries failed requests with premium proxy service
+- Handles JavaScript-heavy sites
+- Configurable fallback scenarios
+
+### Content Filtering
+- Minimum content length requirements
+- Pattern-based content exclusion
+- Duplicate content detection
+
+### Parallel Processing
+- Configurable worker threads
+- Rate limiting protection
+- Graceful error handling
+
+## 📊 Output Format
+
+Results are saved as JSON with this structure:
 ```json
 {
   "team_id": "aline123",
   "items": [
     {
       "title": "Article Title",
-      "content": "Markdown content...",
-      "content_type": "article",
-      "source_url": "https://example.com/article",
-      "author": "Author Name"
+      "content": "Article content...",
+      "content_type": "blog",
+      "source_url": "https://...",
+      "author": "Author Name",
+      "user_id": ""
     }
   ]
 }
 ```
 
-## Extending the Scraper
+## 🚫 Deprecated Components
 
-Adding new sources is straightforward:
+- **main.py**: Legacy hardcoded approach - use `python cli.py scrape` instead
+- **Direct scraper imports**: Use CLI interface rather than importing scrapers directly
 
-1. Create a new crawler function in `scrapers.py`:
-   ```python
-   def crawl_new_source():
-       # Implementation here
-       pass
-   ```
+## 📝 Dependencies
 
-2. Call it from `main.py`:
-   ```python
-   new_items = crawl_new_source()
-   all_items.extend(new_items)
-   ```
+Core dependencies are in `requirements.txt`:
+- `requests` - HTTP client
+- `beautifulsoup4` - HTML parsing
+- `PyMuPDF` - PDF processing
+- `click` - CLI framework
+- `colorama` - Terminal colors
+- `pyyaml` - Configuration parsing
+- `markdownify` - HTML to Markdown conversion
 
-## Best Practices
+## 🤝 Contributing
 
-- **Rate Limiting**: Includes delays to avoid overwhelming servers
-- **Professional Headers**: Uses appropriate User-Agent identification
-- **Error Handling**: Robust handling of network and parsing errors
-- **Content Cleaning**: Removes navigation artifacts and unwanted elements
-- **Metadata Extraction**: Captures author information and publication dates when available
+1. Test changes with `python cli.py validate`
+2. Add new targets via `config.yml`
+3. Use the CLI interface for all operations
+4. Test PDF processing with `python test_pdf_processor.py`
 
-## Performance Considerations
+## 📈 Performance Tips
 
-- Uses `ThreadPoolExecutor` for I/O-bound concurrent operations
-- Configurable worker limits to balance speed and server respect
-- Network latency optimization through parallel processing
-- Efficient PDF parsing with PyMuPDF
+1. **Adjust rate limiting**: Modify `request_delay` in config.yml
+2. **Use targeted selectors**: More specific CSS selectors = better performance
+3. **Enable ZenRows for problem sites**: Handles complex JavaScript sites
+4. **Batch operations**: Process multiple targets in one run
 
-## Contributing
+---
 
-The modular architecture makes it easy to:
-- Add new content sources
-- Enhance parsing logic for specific sites
-- Improve content cleaning algorithms
-- Extend metadata extraction capabilities
-
-## License
-
-This project is designed as a reusable tool for building knowledge bases from web content and documents.
+**Note**: This tool is designed for educational and research purposes. Always respect robots.txt and website terms of service.
