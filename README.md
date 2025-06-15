@@ -38,7 +38,7 @@ python cli.py --help
 ├── zenrows_scraper.py    # Premium API fallback
 ├── pdf_processor.py      # PDF content extraction
 ├── main.py              # Legacy script (DEPRECATED)
-├── scrapers.py          # Legacy scrapers (partial use)
+├── universal_scraper.py # Universal scraper (primary)
 ├── test_pdf_processor.py # PDF testing utilities
 ├── Books_PDF/           # PDF files directory
 └── requirements.txt     # Python dependencies

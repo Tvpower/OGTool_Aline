@@ -14,7 +14,7 @@ import click
 from colorama import init, Fore, Style
 
 from config_loader import ConfigLoader, ScraperConfig
-from generic_scraper import GenericScraper, LegacyScraper
+from universal_scraper import UniversalScraper, ComprehensiveScraper
 import pdf_processor
 
 # Initialize colorama for cross-platform colored output
@@ -139,16 +139,42 @@ def scrape(config: str, output: Optional[str], target: Optional[str], skip_pdf: 
         
         # Perform scraping
         all_items = []
-        generic_scraper = GenericScraper(scraper_config)
-        legacy_scraper = LegacyScraper(scraper_config)
+        
+        # Get ZenRows API key if configured
+        zenrows_api_key = None
+        if scraper_config.zenrows_config.get('enabled', False):
+            zenrows_api_key = scraper_config.zenrows_config.get('api_key')
+        
+        universal_scraper = UniversalScraper(zenrows_api_key=zenrows_api_key)
         
         for target_config in targets:
-            # Check if we should use legacy scraper
-            if legacy_scraper.use_legacy_scraper(target_config):
-                print_info(f"Using specialized scraper for {target_config.name}")
-                items = legacy_scraper.scrape_with_legacy(target_config)
+            print_info(f"Scraping {target_config.name}...")
+            
+            if target_config.type in ['blog', 'newsletter', 'guides', 'topics', 'learn']:
+                # Discover articles first, then scrape them
+                try:
+                    article_urls = universal_scraper.discover_article_urls(target_config.url, max_urls=20)
+                    print_info(f"Found {len(article_urls)} articles to scrape from {target_config.name}")
+                    
+                    if article_urls:
+                        items = universal_scraper.scrape_multiple_urls(article_urls, max_workers=scraper_config.max_workers)
+                    else:
+                        # Try scraping the main page directly
+                        item = universal_scraper.scrape_url(target_config.url) 
+                        items = [item] if item else []
+                        
+                except Exception as e:
+                    print_warning(f"Error scraping {target_config.name}: {e}")
+                    items = []
             else:
-                items = generic_scraper.scrape_target(target_config)
+                # For other types, try scraping directly
+                item = universal_scraper.scrape_url(target_config.url)
+                items = [item] if item else []
+            
+            # Add team_id and user_id to items
+            for item in items:
+                if item:
+                    item['user_id'] = scraper_config.team_id
             
             all_items.extend(items)
             print_info(f"Scraped {len(items)} items from {target_config.name}")
@@ -196,8 +222,8 @@ def process_pdf(pdf_path: str, output: Optional[str], config: str):
         # Load configuration for PDF processing settings
         scraper_config = ConfigLoader.load_config(config) if os.path.exists(config) else ScraperConfig()
         
-        print_info(f"Processing PDF: {pdf_path}")
-        items = pdf_processor.process_book_chapters(pdf_path)
+        print_info(f"Processing PDF: {pdf_path} (first 8 chapters only)")
+        items = pdf_processor.process_book_chapters(pdf_path, max_chapters=8)
         
         if not items:
             print_warning("No content extracted from PDF")
@@ -283,28 +309,18 @@ def scrape_url(url: str, title_selector: str, content_selector: str, output: Opt
         
         result = None
         
-        # Force ZenRows if requested
-        if force_zenrows:
-            if not scraper_config.zenrows_config.get('enabled', False):
-                print_error("ZenRows is not enabled in configuration")
-                sys.exit(1)
-            
-            api_key = scraper_config.zenrows_config.get('api_key')
-            if not api_key:
-                print_error("ZenRows API key not configured")
-                sys.exit(1)
-            
-            try:
-                from zenrows_scraper import ZenRowsScraper
-                zenrows = ZenRowsScraper(scraper_config, api_key)
-                result = zenrows.scrape_url(url, temp_target, use_premium)
-            except ImportError:
-                print_error("ZenRows scraper module not found")
-                sys.exit(1)
-        else:
-            # Regular scraping (with potential ZenRows fallback)
-            generic_scraper = GenericScraper(scraper_config)
-            result = generic_scraper._scrape_single_article(url, temp_target)
+        # Get ZenRows API key if configured
+        zenrows_api_key = None
+        if scraper_config.zenrows_config.get('enabled', False):
+            zenrows_api_key = scraper_config.zenrows_config.get('api_key')
+        
+        # Use UniversalScraper for consistent behavior
+        universal_scraper = UniversalScraper(zenrows_api_key=zenrows_api_key)
+        result = universal_scraper.scrape_url(url)
+        
+        # Add team_id if result found
+        if result:
+            result['user_id'] = scraper_config.team_id
         
         if not result:
             print_warning("No content extracted from URL")
@@ -431,6 +447,50 @@ def list_targets(config: str):
 
 
 @cli.command()
+def comprehensive_scrape():
+    """
+    🚀 Run comprehensive scraping with advanced discovery.
+    
+    Uses the ComprehensiveScraper which has specialized logic for:
+    - Discovering all blog posts from interviewing.io/blog
+    - Finding company guides from interviewing.io/topics#companies
+    - Getting interview guides from interviewing.io/learn#interview-guides
+    - Scraping all of Nil's DS&A posts
+    - Scraping Shreycation Substack newsletter posts
+    
+    This is more thorough than the regular 'scrape' command.
+    
+    Examples:
+        python cli.py comprehensive-scrape
+    """
+    try:
+        print_info("Starting comprehensive scraping with advanced discovery...")
+        
+        # Load configuration for ZenRows API key
+        scraper_config = ConfigLoader.load_config(DEFAULT_CONFIG) if os.path.exists(DEFAULT_CONFIG) else None
+        zenrows_api_key = None
+        
+        if scraper_config and scraper_config.zenrows_config.get('enabled', False):
+            zenrows_api_key = scraper_config.zenrows_config.get('api_key')
+        
+        # Use ComprehensiveScraper
+        comprehensive_scraper = ComprehensiveScraper(zenrows_api_key=zenrows_api_key)
+        
+        # Run comprehensive scraping
+        all_items = comprehensive_scraper.scrape_all_sources()
+        
+        # Save results
+        comprehensive_scraper.save_to_json('output.json')
+        
+        print_success(f"Comprehensive scraping completed! Total items: {len(all_items)}")
+        print_info("Results saved to 'output.json'")
+        
+    except Exception as e:
+        print_error(f"Comprehensive scraping failed: {e}")
+        sys.exit(1)
+
+
+@cli.command()
 @click.option(
     '--config', '-c', 
     default=DEFAULT_CONFIG, 
@@ -519,22 +579,23 @@ def zenrows_status(config: str):
 
 
 def process_pdfs(config: ScraperConfig) -> List[dict]:
-    """Process all PDFs in the configured directory."""
+    """Process all PDFs in the configured directory using multithreaded processing."""
     pdf_files = glob.glob(os.path.join(config.pdf_directory, '*.pdf'))
     
     if not pdf_files:
         print_warning(f"No PDFs found in '{config.pdf_directory}' directory")
         return []
     
-    print_info(f"Processing {len(pdf_files)} PDF(s)")
-    all_items = []
+    print_info(f"Processing {len(pdf_files)} PDF(s) with multithreading (first 8 chapters each)")
     
-    for pdf_path in pdf_files:
-        print_info(f"Processing: {os.path.basename(pdf_path)}")
-        items = pdf_processor.process_book_chapters(pdf_path)
-        all_items.extend(items)
-        print_info(f"Extracted {len(items)} items from {os.path.basename(pdf_path)}")
+    # Use the new multithreaded PDF processor with 8-chapter limit
+    all_items = pdf_processor.process_multiple_pdfs_threaded(
+        pdf_paths=pdf_files,
+        max_chapters=8,
+        max_workers=min(len(pdf_files), 4)  # Don't exceed 4 workers or number of files
+    )
     
+    print_success(f"PDF processing completed: {len(all_items)} total items extracted")
     return all_items
 
 

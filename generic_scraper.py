@@ -1,6 +1,7 @@
 """
 Configuration-driven generic scraper.
 This module provides a flexible scraper that works with YAML configuration files.
+It complements the UniversalScraper by offering structured, configuration-based scraping.
 """
 
 import concurrent.futures
@@ -303,29 +304,4 @@ class GenericScraper:
         return ""
 
 
-class LegacyScraper:
-    """
-    Wrapper for the legacy specialized scrapers.
-    Used when specialized scraping is needed for certain sites.
-    """
-    
-    def __init__(self, config: ScraperConfig):
-        self.config = config
-    
-    def use_legacy_scraper(self, target: ScrapingTarget) -> bool:
-        """Check if we should use the legacy scraper for this target."""
-        site_config = self.config.site_configs.get('interviewing_io', {})
-        return (target.name.lower().startswith('interviewing.io') and 
-                site_config.get('use_specialized_scraper', False))
-    
-    def scrape_with_legacy(self, target: ScrapingTarget) -> List[Dict[str, Any]]:
-        """Use the legacy scraper functions."""
-        # Import here to avoid circular imports
-        import scrapers
-        
-        if target.name == "Interviewing.io Blog":
-            return scrapers.crawl_interviewing_io_blog()
-        elif target.name == "Interviewing.io Guides":
-            return scrapers.crawl_interviewing_io_guides()
-        else:
-            return [] 
+ 

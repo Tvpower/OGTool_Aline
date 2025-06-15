@@ -113,27 +113,69 @@ class ConfigLoader:
         pdf_processing = config_data.get('pdf_processing', {})
         zenrows_config = config_data.get('zenrows', {})
         
-        # Parse targets
+        # Parse targets (support both new 'sources' and old 'targets' format)
         targets = []
-        for target_data in config_data.get('targets', []):
-            target = ScrapingTarget(
-                name=target_data.get('name', ''),
-                url=target_data.get('url', ''),
-                type=target_data.get('type', 'blog'),
-                enabled=target_data.get('enabled', True),
-                article_link_selector=target_data.get('article_link_selector', ''),
-                article_link_filter=target_data.get('article_link_filter', ''),
-                title_selector=target_data.get('title_selector', 'h1'),
-                content_selectors=target_data.get('content_selectors', []),
-                author_selector=target_data.get('author_selector', ''),
-                author_extraction=target_data.get('author_extraction', ''),
-                default_author=target_data.get('default_author', ''),
-                content_elements=target_data.get('content_elements', []),
-                content_min_length=target_data.get('content_min_length', 50),
-                exclude_content_patterns=target_data.get('exclude_content_patterns', []),
-                discovery_pages=target_data.get('discovery_pages', [])
-            )
-            targets.append(target)
+        
+        # Check for new simplified 'sources' format first
+        if 'sources' in config_data:
+            fallback_authors = config_data.get('fallback_authors', {})
+            
+            for source_data in config_data.get('sources', []):
+                # Convert simplified source to full target format
+                url = source_data.get('url', '')
+                name = source_data.get('name', '')
+                
+                # Get fallback author for this domain
+                fallback_author = ""
+                if url:
+                    try:
+                        from urllib.parse import urlparse
+                        domain = urlparse(url).netloc.lower()
+                        fallback_author = fallback_authors.get(domain, "")
+                    except:
+                        pass
+                
+                target = ScrapingTarget(
+                    name=name,
+                    url=url,
+                    type=source_data.get('type', 'blog'),
+                    enabled=source_data.get('enabled', True),
+                    # Use defaults for automatic detection
+                    article_link_selector="",
+                    article_link_filter="",
+                    title_selector="h1",
+                    content_selectors=[],
+                    author_selector="",
+                    author_extraction="",
+                    default_author=fallback_author,  # Use fallback author from config
+                    content_elements=[],
+                    content_min_length=50,
+                    exclude_content_patterns=[],
+                    discovery_pages=[]
+                )
+                targets.append(target)
+        
+        # Fall back to old 'targets' format for backward compatibility
+        elif 'targets' in config_data:
+            for target_data in config_data.get('targets', []):
+                target = ScrapingTarget(
+                    name=target_data.get('name', ''),
+                    url=target_data.get('url', ''),
+                    type=target_data.get('type', 'blog'),
+                    enabled=target_data.get('enabled', True),
+                    article_link_selector=target_data.get('article_link_selector', ''),
+                    article_link_filter=target_data.get('article_link_filter', ''),
+                    title_selector=target_data.get('title_selector', 'h1'),
+                    content_selectors=target_data.get('content_selectors', []),
+                    author_selector=target_data.get('author_selector', ''),
+                    author_extraction=target_data.get('author_extraction', ''),
+                    default_author=target_data.get('default_author', ''),
+                    content_elements=target_data.get('content_elements', []),
+                    content_min_length=target_data.get('content_min_length', 50),
+                    exclude_content_patterns=target_data.get('exclude_content_patterns', []),
+                    discovery_pages=target_data.get('discovery_pages', [])
+                )
+                targets.append(target)
         
         # Create main config object
         config = ScraperConfig(

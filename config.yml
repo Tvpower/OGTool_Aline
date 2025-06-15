@@ -1,5 +1,5 @@
-# Configuration for the Web Scraper Tool
-# This file defines all scraping targets and their specific selectors
+# Simple Web Scraper Configuration
+# Just list the sources you want to scrape
 
 # Global settings
 settings:
@@ -10,151 +10,52 @@ settings:
   request_delay: 0.2
   timeout: 15
 
-# User-Agent for web requests
-headers:
-  User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+# ZenRows API configuration (optional - for fallback scraping)
+zenrows:
+  enabled: true
+  api_key: "api-key here"
 
-# Scraping targets configuration
-targets:
+# Sources to scrape - just URLs and basic info
+sources:
   - name: "Interviewing.io Blog"
     url: "https://interviewing.io/blog"
     type: "blog"
     enabled: true
-    # Selectors for finding article links on the main page
-    article_link_selector: "h1 > a"
-    article_link_filter: "/blog/"  # Only links containing this string
-    # Selectors for extracting content from individual articles
-    title_selector: "h1"
-    content_selectors:
-      - "article .blog-post-content"
-      - "article .post-content"
-      - "div.mx-auto.flex.max-w-5xl"
-      - "main"
-    # Selectors for metadata
-    author_selector: ""  # Custom logic needed for interviewing.io
-    author_extraction: "byline_text"  # Use custom extraction method
-    # Content filtering
-    content_min_length: 30
-    exclude_content_patterns:
-      - "read more"
-      - "share this"
-      - "published:"
-      - "by "
-      - "tags:"
-      - "category:"
-      - "continue reading"
 
   - name: "Interviewing.io Guides"
-    url: "https://interviewing.io"
-    type: "guide"
+    url: "https://interviewing.io/guides"
+    type: "guides"
     enabled: true
-    # Multi-page discovery
-    discovery_pages:
-      - "https://interviewing.io/topics"
-      - "https://interviewing.io/learn"
-    article_link_selector: "a[href*='/guides/']"
-    title_selector: "h1"
-    content_selectors:
-      - "div.mx-auto.mb-\\[128px\\]"
-      - "div.mx-auto.flex.w-full.flex-col"
-    author_selector: ""
-    default_author: "interviewing.io team"
-    content_elements:
-      - "p.mb-8"
-      - "h2.mb-8"
-      - "h3.mb-6"
-      - "ul.mb-8"
-    content_min_length: 20
 
-  - name: "Nil Mamano DSA"
+  - name: "Interviewing.io Company Guides"
+    url: "https://interviewing.io/topics#companies"
+    type: "companies"
+    enabled: true
+
+  - name: "Interviewing.io Interview Guides"
+    url: "https://interviewing.io/learn#interview-guides"
+    type: "interview-guides"
+    enabled: true
+
+  - name: "Nil Mamano DSA Blog"
     url: "https://nilmamano.com/blog/category/dsa/"
     type: "blog"
-    enabled: True
-    article_link_selector: "a[href*='blog']"
-    article_link_filter: "/blog/"
-    title_selector: "h1"
-    content_selectors:
-      - "div.post-content"
-      - "article .content"
-      - "main"
-    author_selector: "meta[name='author']"
-    default_author: "Nil Mamano"
-    content_min_length: 50
-
+    enabled: true
 
   - name: "Quill.co Blog"
     url: "https://quill.co/blog"
     type: "blog"
     enabled: true
-    article_link_selector: "a[href*='blog']"
-    title_selector: "h1"
-    content_selectors:
-      - "div.blog-content"
-      - "article .post-body"
-      - "main"
-    author_selector: ".author-name"
-    content_min_length: 50
 
   - name: "Shreycation Substack"
     url: "https://shreycation.substack.com"
     type: "newsletter"
     enabled: true
-    # Substack article discovery - multiple selectors for fallback
-    article_link_selector: "a[href*='/p/'], a[data-testid='post-preview-title'], h3 a, h2 a, .post-preview-title a"
-    article_link_filter: "/p/"  # Substack post URLs contain /p/
-    # Archive page as fallback
-    discovery_pages:
-      - "https://shreycation.substack.com/archive"
-    # Content extraction selectors
-    title_selector: "h1.post-title, h1[data-testid='post-title'], h1.post-preview-title"
-    content_selectors:
-      - "div.available-content"
-      - "div.body.markup" 
-      - "div.post-content"
-      - "div[class*='available-content']"
-      - "article"
-      - "main"
-    # Author and metadata
-    author_selector: "span.byline-names a, .byline a"
-    default_author: "Shrey G"
-    date_selector: "time, .date"
-    # Content filtering
-    content_min_length: 100
-    exclude_content_patterns:
-      - "subscribe"
-      - "upgrade to paid"
-      - "become a paid subscriber"
-      - "leave a comment"
-      - "share"
-      - "like"
-      - "restack"
-    # Enable fallback scraping for dynamic content
-    use_fallback_scraping: true
 
-# Custom site-specific configurations
-site_configs:
-  interviewing_io:
-    # Special handling for interviewing.io sites
-    use_specialized_scraper: true
-    rate_limit: 0.2
-    custom_content_extraction: true
-    
-# PDF processing configuration
-pdf_processing:
-  enabled: true
-  chunk_size: 1000
-  overlap: 200
-  min_chapter_length: 100
-
-# ZenRows API configuration for fallback scraping
-zenrows:
-  enabled: true  # Set to true to enable ZenRows fallback
-  api_key: "BLEH :b"  # Your ZenRows API key
-  # Fallback scenarios - when to use ZenRows
-  fallback_for_discovery: true        # Use when article discovery fails
-  fallback_for_articles: true         # Use when content extraction fails
-  fallback_for_network_errors: true   # Use when network requests fail
-  # Premium features settings
-  use_premium_for_discovery: true     # Use JS rendering for discovery pages
-  use_premium_for_articles: true      # Use JS rendering for article pages
-  use_premium_for_errors: true        # Use premium features when fallback is triggered by errors 
+# Optional: Default fallback authors for sites where detection fails
+# (Only used if no author can be detected automatically)
+fallback_authors:
+  "interviewing.io": "interviewing.io team"
+  "nilmamano.com": "Nil Mamano"
+  "quill.co": "Quill team"
+  "shreycation.substack.com": "Shrey G" 
